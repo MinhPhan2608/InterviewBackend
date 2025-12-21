@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: InterviewBE
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_DB:testdb}
+    username: ${POSTGRESQL_USER:testuser}
+    password: ${POSTGRESQL_PASS:testpassword}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: postgresql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
