@@ -1,0 +1,3 @@
+ALTER TABLE score
+    ALTER COLUMN language DROP NOT NULL;
+

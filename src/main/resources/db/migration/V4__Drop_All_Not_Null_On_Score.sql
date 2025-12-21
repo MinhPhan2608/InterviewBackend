@@ -1,0 +1,5 @@
+ALTER TABLE score
+    ALTER COLUMN literature DROP NOT NULL;
+
+ALTER TABLE score
+    ALTER COLUMN maths DROP NOT NULL;
