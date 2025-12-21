@@ -1,7 +1,7 @@
 name: TestApp
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16.4
     environment:
       POSTGRES_USER: testuser
       POSTGRES_PASSWORD: testpassword
