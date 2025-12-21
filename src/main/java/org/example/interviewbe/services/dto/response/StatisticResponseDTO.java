@@ -1,4 +1,4 @@
-package org.example.interviewbe.services.dto;
+package org.example.interviewbe.services.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StatisticDTO {
+public class StatisticResponseDTO {
     String subject;
     int group1;
     int group2;

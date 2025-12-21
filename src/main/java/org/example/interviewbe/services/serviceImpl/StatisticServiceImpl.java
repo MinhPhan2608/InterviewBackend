@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.interviewbe.models.Statistic;
 import org.example.interviewbe.repositories.StatisticRepo;
+import org.example.interviewbe.services.dto.response.StatisticResponseDTO;
+import org.example.interviewbe.services.mapper.StatisticsMapper;
 import org.example.interviewbe.services.serviceInterface.StatisticService;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +17,16 @@ import java.util.List;
 @Service
 public class StatisticServiceImpl implements StatisticService {
     StatisticRepo repo;
+    StatisticsMapper mapper;
     @Override
     public void insertBySubject(List<Statistic> statistic) {
         repo.saveAll(statistic);
+    }
+
+    @Override
+    public List<StatisticResponseDTO> getAllStatisticsBySubject() {
+        return repo.findAll().stream()
+                .map(mapper::toDto)
+                .toList();
     }
 }
