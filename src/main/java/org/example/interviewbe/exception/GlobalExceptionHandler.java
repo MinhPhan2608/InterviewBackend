@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.interviewbe.controllers.base.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -27,6 +28,13 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<?>> methodNotAllowed(HttpRequestMethodNotSupportedException ex){
+        return  ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(
+                        ApiResponse.error(HttpStatus.METHOD_NOT_ALLOWED.value(), ex.getMessage())
+                );
+    }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> internalServerError(Exception ex){
         log.error("Internal server error: {}", ex.getMessage());
