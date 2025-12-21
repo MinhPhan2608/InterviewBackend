@@ -1,5 +1,6 @@
 package org.example.interviewbe.services.serviceImpl;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,21 +23,11 @@ public class ScoreServiceImpl implements ScoreService {
     ScoreMapper scoreMapper;
     @Override
     public ScoreResponseDTO findByRegistrationNum(String registrationNum) {
-        try{
-            StudentScore studentScore = scoreRepo.findByRegistrationNumber(registrationNum);
-            if (studentScore == null) {
-                return null;
-            }
-            return scoreMapper.toDto(studentScore);
-        } catch (Exception e) {
-            log.error("Error finding student score by registration number {}: {}", registrationNum, e.getMessage());
-            throw new RuntimeException("Failed to find student score", e);
+        StudentScore studentScore = scoreRepo.findByRegistrationNumber(registrationNum);
+        if (studentScore == null) {
+            throw new EntityNotFoundException("Can't find scores for registration num: " + registrationNum);
         }
-    }
-
-    @Override
-    public void insertBatchScores(List<StudentScore> studentScores) {
-        scoreRepo.saveAll(studentScores);
+        return scoreMapper.toDto(studentScore);
     }
 
     @Override

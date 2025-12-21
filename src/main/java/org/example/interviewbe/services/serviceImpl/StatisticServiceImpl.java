@@ -18,10 +18,6 @@ import java.util.List;
 public class StatisticServiceImpl implements StatisticService {
     StatisticRepo repo;
     StatisticsMapper mapper;
-    @Override
-    public void insertBySubject(List<Statistic> statistic) {
-        repo.saveAll(statistic);
-    }
 
     @Override
     public List<StatisticResponseDTO> getAllStatisticsBySubject() {

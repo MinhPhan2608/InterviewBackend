@@ -6,6 +6,5 @@ import org.example.interviewbe.services.dto.response.StatisticResponseDTO;
 import java.util.List;
 
 public interface StatisticService {
-    void insertBySubject(List<Statistic> statistics);
     List<StatisticResponseDTO> getAllStatisticsBySubject();
 }
