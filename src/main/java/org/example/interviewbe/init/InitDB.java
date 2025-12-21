@@ -63,15 +63,15 @@ public class InitDB implements CommandLineRunner {
             String[] cols = line.split(",", -1);
             StudentScore score = StudentScore.builder()
                     .registrationNumber(cols[0])
-                    .math(parseFloat(cols[1]))
-                    .literature(parseFloat(cols[2]))
-                    .language(parseFloat(cols[3]))
-                    .physics(parseFloat(cols[4]))
-                    .chemistry(parseFloat(cols[5]))
-                    .biology(parseFloat(cols[6]))
-                    .history(parseFloat(cols[7]))
-                    .geography(parseFloat(cols[8]))
-                    .gdcd(parseFloat(cols[9]))
+                    .math(customParseFloat(cols[1]))
+                    .literature(customParseFloat(cols[2]))
+                    .language(customParseFloat(cols[3]))
+                    .physics(customParseFloat(cols[4]))
+                    .chemistry(customParseFloat(cols[5]))
+                    .biology(customParseFloat(cols[6]))
+                    .history(customParseFloat(cols[7]))
+                    .geography(customParseFloat(cols[8]))
+                    .gdcd(customParseFloat(cols[9]))
                     .languageCode(cols[10])
                     .build();
             score.setTotalA();
@@ -121,5 +121,9 @@ public class InitDB implements CommandLineRunner {
         } else {
             stat.setGroup4(stat.getGroup4() + 1);
         }
+    }
+    Float customParseFloat(String str) {
+        if (str == null || str.isEmpty()) return null;
+        return parseFloat(str);
     }
 }
