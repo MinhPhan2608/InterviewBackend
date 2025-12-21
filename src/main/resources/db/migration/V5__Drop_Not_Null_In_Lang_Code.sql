@@ -1,0 +1,2 @@
+ALTER TABLE score
+    ALTER COLUMN language_code DROP NOT NULL;

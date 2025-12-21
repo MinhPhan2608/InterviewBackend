@@ -54,7 +54,7 @@ public class StudentScore {
     @Column(name="total_A")
     Float totalA;
 
-    @Column(name="language_code", nullable = false)
+    @Column(name="language_code")
     String languageCode;
 
     public void setTotalA() {

@@ -4,127 +4,156 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.example.interviewbe.models.Statistic;
-import org.example.interviewbe.models.StudentScore;
-import org.example.interviewbe.services.serviceInterface.ScoreService;
-import org.example.interviewbe.services.serviceInterface.StatisticService;
+import org.example.interviewbe.repositories.ScoreRepo;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import javax.sql.DataSource;
+import java.io.FileReader;
+import java.sql.Connection;
 
-import static java.lang.Float.parseFloat;
-
-
-// TODO: This script takes more than 10 minutes to insert 1 million rows, will optimized it later
-// TODO: fix the floating point precision issue
 @Component
 @Order(1)
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class InitDB implements CommandLineRunner {
-    ScoreService scoreService;
-    StatisticService statisticService;
+    ScoreRepo scoreRepo;
+    DataSource dataSource;
 
     static String DATA_SOURCE = "data/diem_thi_thpt_2024.csv";
-    static int BATCH_SIZE =1000;
-    static List<String> SUBJECT_ARR = List.of("math", "literature", "english", "physics",
-            "chemistry", "biology", "history", "geography", "gdcd"
-    );
-    static List<Statistic> statistics = new ArrayList<>();
+
     @Override
     public void run(String... args) throws Exception {
-        for (int i = 0; i<9; i++){
-            Statistic stat = Statistic.builder()
-                    .subject(SUBJECT_ARR.get(i))
-                    .group1(0)
-                    .group2(0)
-                    .group3(0)
-                    .group4(0)
-                    .build();
-            statistics.add(stat);
-        }
-        InputStream input = getClass().getClassLoader().getResourceAsStream(DATA_SOURCE);
-        if (input == null) {
-            log.warn("Data source not found");
-            return;
-        }
-        BufferedReader br = new BufferedReader(new InputStreamReader(input));
-        String line;
-        br.readLine();
-        List<StudentScore> batch = new ArrayList<>(BATCH_SIZE);
-        int totalInserted = 0;
-        while ((line = br.readLine()) != null) {
-            String[] cols = line.split(",", -1);
-            StudentScore score = StudentScore.builder()
-                    .registrationNumber(cols[0])
-                    .math(customParseFloat(cols[1]))
-                    .literature(customParseFloat(cols[2]))
-                    .language(customParseFloat(cols[3]))
-                    .physics(customParseFloat(cols[4]))
-                    .chemistry(customParseFloat(cols[5]))
-                    .biology(customParseFloat(cols[6]))
-                    .history(customParseFloat(cols[7]))
-                    .geography(customParseFloat(cols[8]))
-                    .gdcd(customParseFloat(cols[9]))
-                    .languageCode(cols[10])
-                    .build();
-            score.setTotalA();
-            try {
-                addStatistic(statistics, score);
-            } catch (Exception e) {
-                log.error("Error updating statistics for score: {}", score, e);
-            }
-            batch.add(score);
-            if (batch.size() == BATCH_SIZE) {
-                scoreService.insertBatchScores(batch);
-                totalInserted += batch.size();
-                batch.clear();
-                log.info("Inserted: {}", totalInserted);
-            }
-        }
-        if (!batch.isEmpty()) {
-            scoreService.insertBatchScores(batch);
-            totalInserted += batch.size();
-        }
-        statisticService.insertBySubject(statistics);
-    }
-    void addStatistic(List<Statistic> stats, StudentScore score) {
-        updateStat(stats, "math", score.getMath());
-        updateStat(stats, "literature", score.getLiterature());
-        updateStat(stats, "english", score.getLanguage());
-        updateStat(stats, "physics", score.getPhysics());
-        updateStat(stats, "chemistry", score.getChemistry());
-        updateStat(stats, "biology", score.getBiology());
-        updateStat(stats, "history", score.getHistory());
-        updateStat(stats, "geography", score.getGeography());
-        updateStat(stats, "gdcd", score.getGdcd());
-    }
-
-    private void updateStat(List<Statistic> stats, String subject, Float score) {
-        if (score == null) return;
-        Statistic stat = stats.stream()
-                .filter(s -> s.getSubject().equals(subject))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Statistic not found for " + subject));
-        if (score >= 8) {
-            stat.setGroup1(stat.getGroup1() + 1);
-        } else if (score >= 6) {
-            stat.setGroup2(stat.getGroup2() + 1);
-        } else if (score >= 4) {
-            stat.setGroup3(stat.getGroup3() + 1);
+        if (scoreRepo.count() > 0) {
+            log.info("Skipping import");
         } else {
-            stat.setGroup4(stat.getGroup4() + 1);
+            try (Connection conn = dataSource.getConnection(); FileReader reader = new FileReader(DATA_SOURCE)) {
+                conn.setAutoCommit(false);
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute("""
+                                CREATE TABLE scores_raw(
+                                registration_number VARCHAR(255),
+                                maths FLOAT,
+                                literature FLOAT,
+                                language FLOAT,
+                                physics FLOAT,
+                                chemistry FLOAT,
+                                biology FLOAT,
+                                history FLOAT,
+                                geography FLOAT,
+                                gdcd FLOAT,
+                                language_code VARCHAR(255))
+                            """);
+                }
+                CopyManager copyManager = new CopyManager(conn.unwrap(BaseConnection.class));
+                copyManager.copyIn("COPY scores_raw FROM STDIN WITH (FORMAT csv, HEADER true)", reader);
+                log.info("Copy to temporary table completed");
+
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute("""
+                                INSERT INTO score (
+                                    registration_number,
+                                    maths, literature, language,
+                                    physics, chemistry, biology,
+                                    history, geography, gdcd,
+                                    total_a,
+                                    language_code
+                                )
+                                SELECT
+                                    registration_number,
+                                    maths, literature, language,
+                                    physics, chemistry, biology,
+                                    history, geography, gdcd,
+                                    COALESCE(maths, 0)
+                                      + COALESCE(physics, 0)
+                                      + COALESCE(chemistry, 0),
+                                    language_code
+                                FROM scores_raw
+                            """);
+                }
+                log.info("Insert into score done");
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute("""
+                                INSERT INTO statistic (mon_hoc, group1, group2, group3, group4)
+                                          SELECT 'maths',
+                                                 COUNT(*) FILTER (WHERE maths >= 8),
+                                                 COUNT(*) FILTER (WHERE maths < 8 AND maths >= 6),
+                                                 COUNT(*) FILTER (WHERE maths < 6 AND maths >= 4),
+                                                 COUNT(*) FILTER (WHERE maths < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'literature',
+                                                 COUNT(*) FILTER (WHERE literature >= 8),
+                                                 COUNT(*) FILTER (WHERE literature < 8 AND literature >= 6),
+                                                 COUNT(*) FILTER (WHERE literature < 6 AND literature >= 4),
+                                                 COUNT(*) FILTER (WHERE literature < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'language',
+                                                 COUNT(*) FILTER (WHERE language >= 8),
+                                                 COUNT(*) FILTER (WHERE language < 8 AND language >= 6),
+                                                 COUNT(*) FILTER (WHERE language < 6 AND language >= 4),
+                                                 COUNT(*) FILTER (WHERE language < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'physics',
+                                                 COUNT(*) FILTER (WHERE physics >= 8),
+                                                 COUNT(*) FILTER (WHERE physics < 8 AND physics >= 6),
+                                                 COUNT(*) FILTER (WHERE physics < 6 AND physics >= 4),
+                                                 COUNT(*) FILTER (WHERE physics < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'chemistry',
+                                                 COUNT(*) FILTER (WHERE chemistry >= 8),
+                                                 COUNT(*) FILTER (WHERE chemistry < 8 AND chemistry >= 6),
+                                                 COUNT(*) FILTER (WHERE chemistry < 6 AND chemistry >= 4),
+                                                 COUNT(*) FILTER (WHERE chemistry < 4)
+                                          FROM score                           
+                                          UNION ALL
+                                          SELECT 'biology',
+                                                 COUNT(*) FILTER (WHERE biology >= 8),
+                                                 COUNT(*) FILTER (WHERE biology < 8 AND biology >= 6),
+                                                 COUNT(*) FILTER (WHERE biology < 6 AND biology >= 4),
+                                                 COUNT(*) FILTER (WHERE biology < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'history',
+                                                 COUNT(*) FILTER (WHERE history >= 8),
+                                                 COUNT(*) FILTER (WHERE history < 8 AND history >= 6),
+                                                 COUNT(*) FILTER (WHERE history < 6 AND history >= 4),
+                                                 COUNT(*) FILTER (WHERE history < 4)
+                                          FROM score
+                                          UNION ALL
+                                          SELECT 'geography',
+                                                 COUNT(*) FILTER (WHERE geography >= 8),
+                                                 COUNT(*) FILTER (WHERE geography < 8 AND geography >= 6),
+                                                 COUNT(*) FILTER (WHERE geography < 6 AND geography >= 4),
+                                                 COUNT(*) FILTER (WHERE geography < 4)
+                                          FROM score                        
+                                          UNION ALL
+                                          SELECT 'gdcd',
+                                                 COUNT(*) FILTER (WHERE gdcd >= 8),
+                                                 COUNT(*) FILTER (WHERE gdcd < 8 AND gdcd >= 6),
+                                                 COUNT(*) FILTER (WHERE gdcd < 6 AND gdcd >= 4),
+                                                 COUNT(*) FILTER (WHERE gdcd < 4)
+                                          FROM score;
+                            """);
+                }
+                log.info("Statistic built successfully");
+
+                try (var stmt = conn.createStatement()) {
+                    stmt.execute("DROP TABLE scores_raw;");
+                }
+                log.info("Temporary table dropped");
+
+                conn.commit();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to perform CSV upload", e);
+            }
         }
-    }
-    Float customParseFloat(String str) {
-        if (str == null || str.isEmpty()) return null;
-        return parseFloat(str);
     }
 }
