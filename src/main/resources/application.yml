@@ -7,3 +7,8 @@ spring:
     username: ${POSTGRESQL_USER:testuser}
     password: ${POSTGRESQL_PASS:testpassword}
 
+secret:
+  secret-key: ${SECRET_JWT_KEY:dmVyeS1zdHJvbmctc2VjcmV0LWtleS0zMmJ5dGVzLW1pbg==}
+  access-token-expiration: 900000
+  refresh-token-expiration: 86400000
+

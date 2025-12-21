@@ -4,9 +4,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.example.interviewbe.models.Account;
+import org.example.interviewbe.repositories.AccountRepo;
 import org.example.interviewbe.repositories.ScoreRepo;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -23,7 +26,7 @@ import java.sql.Connection;
 public class InitDB implements CommandLineRunner {
     ScoreRepo scoreRepo;
     DataSource dataSource;
-
+    AccountRepo accountRepo;
     static String DATA_SOURCE = "data/diem_thi_thpt_2024.csv";
 
     @Override
@@ -152,8 +155,20 @@ public class InitDB implements CommandLineRunner {
 
                 conn.commit();
             } catch (Exception e) {
-                throw new RuntimeException("Failed to perform CSV upload", e);
+                throw new RuntimeException("Failed to seed db with csv file", e);
             }
+        }
+        if (accountRepo.count() == 0) {
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+            Account account = Account.builder()
+                    .username("test")
+                    .password(encoder.encode("test123"))
+                    .build();
+            accountRepo.save(account);
+            log.info("Default accounts created with username = test and test123");
+        }
+        else {
+            log.info("Skipping account creation");
         }
     }
 }
