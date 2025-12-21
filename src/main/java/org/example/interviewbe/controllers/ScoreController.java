@@ -32,4 +32,15 @@ public class ScoreController {
             return ResponseEntity.status(500).body("Internal server error");
         }
     }
+
+    @GetMapping("/top10/groupA")
+    public ResponseEntity<?> getTop10ScoresGroupA(){
+        try{
+            var topScores = scoreService.findTop10ScoresGroupA();
+            return ResponseEntity.ok(topScores);
+        } catch (Exception e) {
+            log.error("Error retrieving top 10 scores for group A: {}", e.getMessage());
+            return ResponseEntity.status(500).body("Internal server error");
+        }
+    }
 }

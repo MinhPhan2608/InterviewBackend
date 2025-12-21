@@ -38,4 +38,11 @@ public class ScoreServiceImpl implements ScoreService {
     public void insertBatchScores(List<StudentScore> studentScores) {
         scoreRepo.saveAll(studentScores);
     }
+
+    @Override
+    public List<ScoreResponseDTO> findTop10ScoresGroupA() {
+        return scoreRepo.findTop10ByOrderByTotalADesc().stream()
+                .map(scoreMapper::toDto)
+                .toList();
+    }
 }
