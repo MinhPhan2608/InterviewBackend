@@ -24,13 +24,13 @@ public class StudentScore {
 
     String registrationNumber;
 
-    @Column(name="maths", nullable = false)
+    @Column(name="maths")
     Float math;
 
-    @Column(name="literature", nullable = false)
+    @Column(name="literature")
     Float literature;
 
-    @Column(name="language", nullable = false)
+    @Column(name="language")
     Float language;
 
     @Column(name="physics")
@@ -56,4 +56,11 @@ public class StudentScore {
 
     @Column(name="language_code", nullable = false)
     String languageCode;
+
+    public void setTotalA() {
+        if (this.math != null && this.physics != null && this.chemistry != null){
+            this.totalA = this.math + this.physics + this.chemistry;
+        }
+        else this.totalA = null;
+    }
 }
