@@ -20,6 +20,9 @@ import java.util.List;
 
 import static java.lang.Float.parseFloat;
 
+
+// TODO: This script takes more than 10 minutes to insert 1 million rows, will optimized it later
+// TODO: fix the floating point precision issue
 @Component
 @Order(1)
 @RequiredArgsConstructor
@@ -28,8 +31,6 @@ import static java.lang.Float.parseFloat;
 public class InitDB implements CommandLineRunner {
     ScoreService scoreService;
     StatisticService statisticService;
-
-
 
     static String DATA_SOURCE = "data/diem_thi_thpt_2024.csv";
     static int BATCH_SIZE =1000;
