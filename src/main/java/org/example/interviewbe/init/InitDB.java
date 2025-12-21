@@ -15,7 +15,7 @@ import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
 import javax.sql.DataSource;
-import java.io.FileReader;
+import java.io.*;
 import java.sql.Connection;
 
 @Component
@@ -34,7 +34,14 @@ public class InitDB implements CommandLineRunner {
         if (scoreRepo.count() > 0) {
             log.info("Skipping import");
         } else {
-            try (Connection conn = dataSource.getConnection(); FileReader reader = new FileReader(DATA_SOURCE)) {
+            InputStream input = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream(DATA_SOURCE);
+            if (input == null) {
+                throw new RuntimeException("Data source not found: " + DATA_SOURCE);
+            }
+            try (Connection conn = dataSource.getConnection();
+                 Reader reader = new BufferedReader(new InputStreamReader(input))) {
                 conn.setAutoCommit(false);
                 try (var stmt = conn.createStatement()) {
                     stmt.execute("""
