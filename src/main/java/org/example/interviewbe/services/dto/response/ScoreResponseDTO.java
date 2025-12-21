@@ -1,4 +1,4 @@
-package org.example.interviewbe.services.dto;
+package org.example.interviewbe.services.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ScoreResponseDTO {
-    String registrationNumb;
+    String registrationNumber;
     Float math;
     Float literature;
     Float language;

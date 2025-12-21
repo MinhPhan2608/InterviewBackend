@@ -1,7 +1,7 @@
 package org.example.interviewbe.services.serviceInterface;
 
 import org.example.interviewbe.models.StudentScore;
-import org.example.interviewbe.services.dto.ScoreResponseDTO;
+import org.example.interviewbe.services.dto.response.ScoreResponseDTO;
 
 import java.util.List;
 
