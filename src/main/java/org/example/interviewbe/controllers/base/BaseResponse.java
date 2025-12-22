@@ -9,14 +9,14 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
-public class ApiResponse<T> {
+public class BaseResponse<T> {
     boolean success;
     int code;
     String message;
     T data;
 
-    public static <T> ApiResponse<T> success(T data) {
-        return ApiResponse.<T>builder()
+    public static <T> BaseResponse<T> success(T data) {
+        return BaseResponse.<T>builder()
                 .success(true)
                 .code(HttpStatus.OK.value())
                 .message("OK")
@@ -24,8 +24,8 @@ public class ApiResponse<T> {
                 .build();
     }
 
-    public static ApiResponse<?> error(int code, String message) {
-        return ApiResponse.builder()
+    public static BaseResponse<?> error(int code, String message) {
+        return BaseResponse.builder()
                 .success(false)
                 .code(code)
                 .message(message)

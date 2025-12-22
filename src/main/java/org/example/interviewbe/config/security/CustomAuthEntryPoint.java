@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.example.interviewbe.controllers.base.ApiResponse;
+import org.example.interviewbe.controllers.base.BaseResponse;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -29,7 +29,7 @@ public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json");
         response.getWriter().write(
                 objectMapper.writeValueAsString(
-                        ApiResponse.error(
+                        BaseResponse.error(
                                 HttpStatus.UNAUTHORIZED.value(),
                                 "Unauthorized"
                         )
