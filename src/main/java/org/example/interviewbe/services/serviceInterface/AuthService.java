@@ -5,4 +5,5 @@ import org.example.interviewbe.services.dto.response.AuthResponseDTO;
 
 public interface AuthService {
     AuthResponseDTO authenticate(AuthRequestDTO authRequest);
+    AuthResponseDTO refresh(String refreshToken);
 }

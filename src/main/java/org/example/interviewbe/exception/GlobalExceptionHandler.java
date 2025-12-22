@@ -1,5 +1,6 @@
 package org.example.interviewbe.exception;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -60,6 +61,14 @@ public class GlobalExceptionHandler {
                         ApiResponse.error(HttpStatus.METHOD_NOT_ALLOWED.value(), ex.getMessage())
                 );
     }
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<?>> jwtException(JwtException ex){
+        return  ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        ApiResponse.error(HttpStatus.UNAUTHORIZED.value(), ex.getMessage())
+                );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> internalServerError(Exception ex){
         log.error("Internal server error: {}", ex.getMessage());

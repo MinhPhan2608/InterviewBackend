@@ -1,6 +1,7 @@
 package org.example.interviewbe.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,9 +12,7 @@ import org.example.interviewbe.services.dto.response.AuthResponseDTO;
 import org.example.interviewbe.services.serviceInterface.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/auth")
@@ -25,6 +24,16 @@ public class AuthController extends BaseController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> login(@Valid @RequestBody AuthRequestDTO request){
         var result = authService.authenticate(request);
+        return success(result);
+    }
+
+    @GetMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> refresh(
+            @RequestHeader("Authorization")
+            @NotBlank(message = "Registration number must not be empty")
+            String refreshToken
+    ){
+        var result = authService.refresh(refreshToken);
         return success(result);
     }
 }

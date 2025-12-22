@@ -1,5 +1,6 @@
 package org.example.interviewbe.services.serviceImpl;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,21 @@ public class AuthServiceImpl implements AuthService {
                     jwtService.generateRefreshToken(account));
         }
         else throw new RuntimeException("Invalid login credentials");
+    }
+
+    @Override
+    public AuthResponseDTO refresh(String refreshToken) {
+        if (jwtService.validateRefreshToken(refreshToken)){
+            String username = jwtService.extractUserName(refreshToken);
+            Account account = repository.findByUsername(username);
+            if (account == null){
+                throw new EntityNotFoundException("User not found");
+            }
+            return new AuthResponseDTO(
+                    jwtService.generateAccessToken(account),
+                    ""
+            );
+        }
+        throw new JwtException("Invalid refresh token");
     }
 }
