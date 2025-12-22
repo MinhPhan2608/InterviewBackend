@@ -33,10 +33,13 @@ public class SecurityConfig {
     JwtFilter jwtFilter;
     UserDetailService userDetailService;
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthEntryPoint customAuthEntryPoint) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   CustomAuthEntryPoint customAuthEntryPoint,
+                                                   DaoAuthenticationProvider daoAuthenticationProvider) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthEntryPoint))
+                .authenticationProvider(daoAuthenticationProvider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated())
@@ -59,7 +62,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:8080"));
+        corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
