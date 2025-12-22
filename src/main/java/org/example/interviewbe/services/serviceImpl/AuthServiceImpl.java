@@ -46,8 +46,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO refresh(String refreshToken) {
-        if (jwtService.validateRefreshToken(refreshToken)){
-            String username = jwtService.extractUserName(refreshToken);
+        String token = refreshToken.replace("Bearer ", "");
+        if (jwtService.validateRefreshToken(token)){
+            String username = jwtService.extractUserName(token);
             Account account = repository.findByUsername(username);
             if (account == null){
                 throw new EntityNotFoundException("User not found");
