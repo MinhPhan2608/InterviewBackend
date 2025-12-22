@@ -1,5 +1,7 @@
 package org.example.interviewbe.controllers;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -10,6 +12,7 @@ import org.example.interviewbe.services.dto.response.ScoreResponseDTO;
 import org.example.interviewbe.services.serviceInterface.ScoreService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,11 +24,14 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class ScoreController extends BaseController {
     ScoreService scoreService;
 
     @GetMapping("/{res_num}")
-    public ResponseEntity<ApiResponse<ScoreResponseDTO>> getScoreById(@PathVariable String res_num){
+    public ResponseEntity<ApiResponse<ScoreResponseDTO>> getScoreById(
+            @PathVariable @NotBlank(message = "Registration number must not be empty")
+            @Pattern(regexp = "\\d{8}", message = "Registration number must be exactly 8 digits") String res_num){
         var scoreDto = scoreService.findByRegistrationNum(res_num);
         return success(scoreDto);
 
