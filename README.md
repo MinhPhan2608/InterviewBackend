@@ -37,3 +37,6 @@ docker compose -f src/main/docker/docker-compose.yml up --build
 
 ## NOTE!!!:
 The first request is usually slower than subsequent requests (due to framework initialization and other stuff like db connection pool setup,...)
+
+## UPDATE:
+The Swagger UI for this app is available at /swagger-ui/index.html.
